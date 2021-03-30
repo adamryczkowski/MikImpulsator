@@ -2,6 +2,7 @@
 #include "Arduino.h"
 #include "click.h"
 #include "static_encoder.h"
+#include "dynamic_encoder.h"
 #include "Streaming.h"
 
 //zdarzenia emitowane:
@@ -129,9 +130,16 @@ template<int pin1, int pin2>
 using StaticSmartImpulsator = SmartImpulsator<impulsator_static_esr<pin1, pin2>>;
 
 template<int pin1, int pin2>
-SmartImpulsator<impulsator_static_esr<pin1, pin2>>& make_smart_impulsator(uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
+SmartImpulsator<impulsator_static_esr<pin1, pin2>>& make_smart_impulsator_static(uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
  {
 	static SmartImpulsator<impulsator_static_esr<pin1, pin2>> smart_impulsator = SmartImpulsator<impulsator_static_esr<pin1, pin2>>(impulsator_static_esr<pin1, pin2>(), 
+			max_value, step_count, pin_guzik, guzik_analog_pin);
+	return smart_impulsator;
+}
+
+SmartImpulsator<impulsator_dynamic>& make_smart_impulsator_dynamic(int pin1, int pin2, uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
+ {
+	static SmartImpulsator<impulsator_dynamic> smart_impulsator = SmartImpulsator<impulsator_dynamic>(impulsator_dynamic(pin1, pin2), 
 			max_value, step_count, pin_guzik, guzik_analog_pin);
 	return smart_impulsator;
 }
