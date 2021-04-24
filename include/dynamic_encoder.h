@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <timer.h>
 #include "function_objects.h"
+#ifdef debug
 #include <Streaming.h>
+#endif
 #include "static_encoder.h" //for tab_C and rotation_callback_t
 //Library that handles the encoder through the update calls. May loose some turns - depends on the probing frequency, but otherwise should be as good as the static version.
 //The benefit of using it is the ability to use all the digital pins, not only 2 and 3.
@@ -15,13 +17,28 @@ public:
         pinMode(pin1,  INPUT_PULLUP);
 		pinMode(pin2, INPUT_PULLUP);
      }
-    void set_rotation_callback(rotation_callback_t rotation_callback {
+    void set_rotation_callback(rotation_callback_t rotation_callback) {
         m_rotation_callback = rotation_callback;
     }
-	void update() {
+    void update() {
+        knob_update();
+        m_ct_idle_timout.update();
+		m_ct_stan_1_to_2.update();
+		if (m_queued_knob_turns >= 4 ||
+				m_queued_knob_turns <= -4) {
+            // #ifdef debug
+            // Serial<<"Calling rotation callback!\n";
+            // #endif
+			m_rotation_callback(m_queued_knob_turns / 4);
+			m_queued_knob_turns=0;
+		}
+
+    }
+	void knob_update() {
         uint8_t reg = digitalRead(m_pin1) + digitalRead(m_pin2)*2;
         if (reg == 0) {
             if(m_bylo_zero){
+                m_old_reg=0;
                 return;
             }
             m_bylo_zero=1;
@@ -29,11 +46,14 @@ public:
             m_bylo_zero=0;
         }
 
+        if (reg == m_old_reg) 
+            return;
+
         if (reg != m_old_reg) {
             if (m_stan == 0) {
                 m_ct_stan_1_to_2.set_timer(
                         m_phase_1_to_0_time,
-                        po_kalibracji, 0);
+                        [this](){this->po_kalibracji();}, 0);
                 m_stan = 1;//zaczęto kalibrację
             }
         }
@@ -49,6 +69,7 @@ public:
             }
             m_C += incrC;
             m_I += incrI;
+            // Serial<<"old_reg: "<<m_old_reg<<", reg: "<<reg<<", C: "<<incrC<<", I: "<<incrI<<"\n";
 
         } else if(m_stan == 2) {
             incrC = tab_C[idx];
@@ -63,22 +84,10 @@ public:
         }
         m_ct_idle_timout.set_timer(
                 m_phase_1_to_0_time,
-                time_out, 0);
+                [this](){time_out();}, 0);
 
 
         m_old_reg = reg;
-
-        m_ct_idle_timout.update();
-		m_ct_stan_1_to_2.update();
-		if (m_queued_knob_turns >= 4 ||
-				m_queued_knob_turns <= -4) {
-            // #ifdef debug
-            // Serial<<"Calling rotation callback!\n";
-            // #endif
-			m_rotation_callback(m_queued_knob_turns / 4);
-			m_queued_knob_turns=0;
-		}
-
 	}
 	void po_kalibracji() {
         if (m_C > m_I) {

@@ -1,23 +1,24 @@
 {
-  "name": "RGBW color converter",
-  "version": "1.0.0",
-  "description": "Displays any RGB color using RGB+W for better intensity. Can be calibrated for any white LED and definition of neutral white.",
-  "keywords": "planet, happiness, people",
-  "repository":
-  {
+"name": "Smart Impulsator",
+"version": "2.0.0",
+"repository":
+{
     "type": "git",
-    "url": "https://github.com/adamryczkowski/libRGBW.git"
-  },
-  "authors":
-  [
-    {
-      "name": "Adam Ryczkowski",
-      "email": "adam@statystyka.net",
-      "maintainer": true
-    }
-  ],
-  "license": "MIT",
-  "frameworks": "*",
-  "platforms": "*"
+    "url": "https://github.com/fopeczek/Smart-Impulsator"
+},
+"description": "(I don't have time to write description)",
+"authors": [
+{
+	"name": "Mikołaj Krawczuk",
+	"email": "mikolaj@statystyka.net"
+},
+{
+	"name": "Adam Ryczkowski",
+	"email": "adam@statystyka.net"
+}],
+"license": "Apache-2.0",
+"dependencies": {
+	"Silent/universal button operator by mik": "^0.2.0",
+	"Silent/timer": "^0.1.2"
 }
-
+}

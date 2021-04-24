@@ -3,7 +3,9 @@
 #include "click.h"
 #include "static_encoder.h"
 #include "dynamic_encoder.h"
-#include "Streaming.h"
+#ifdef debug
+#include <Streaming.h>
+#endif
 
 //zdarzenia emitowane:
 // OnOverflow - wypalane, gdy przekręci się impulsator ponad max
@@ -31,15 +33,15 @@ public:
 		#endif
 	}
 
-	uint16_t GetValue() {return m_value;}
-	uint16_t GetMaxValue() {return m_max_value;}
+	uint16_t getValue() {return m_value;}
+	uint16_t getMaxValue() {return m_max_value;}
 	void setValue(uint16_t new_current_value, uint16_t new_max_value=0) {
 		if(new_max_value>0) {
 			m_max_value=new_max_value;
 		}
 		if (m_value != new_current_value) {
 			m_value = new_current_value;
-			on_rotation(new_current_value);
+			//on_rotation(0);
 		}
 	}
 	void setOnChange(FunctionObject<void(void)> on_change) {
@@ -89,14 +91,14 @@ private:
 		m_guzik.setupHoldHandler([this]() {this->on_button_hold();});
 	}
 	void on_button_click() {
-		uint16_t value = GetValue();
-		if(value == GetMaxValue()) {
+		uint16_t value = getValue();
+		if(value == getMaxValue()) {
 			value = 0;
 		} else {
-			uint16_t step =  GetMaxValue() / getStepCount();
+			uint16_t step =  getMaxValue() / getStepCount();
 			value += step;
-			if(value > GetMaxValue()) {
-				value=GetMaxValue();
+			if(value > getMaxValue()) {
+				value=getMaxValue();
 			}
 		}
 		setValue(value);
@@ -105,13 +107,13 @@ private:
 	#endif
 	}
 	void on_button_hold() {
-		if (GetValue()>0){
+		if (getValue()>0){
 			setValue(0);
 		}else {
 			setValue(m_max_value);
 		}
 	#ifdef debug
-		Serial<<"guzik value : "<<GetValue()<<"\n";
+		Serial<<"guzik value : "<<getValue()<<"\n";
 	#endif
 	}
 
@@ -129,6 +131,8 @@ private:
 template<int pin1, int pin2>
 using StaticSmartImpulsator = SmartImpulsator<impulsator_static_esr<pin1, pin2>>;
 
+using DynamicSmartImpulsator = SmartImpulsator<impulsator_dynamic>;
+
 template<int pin1, int pin2>
 SmartImpulsator<impulsator_static_esr<pin1, pin2>>& make_smart_impulsator_static(uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
  {
@@ -137,9 +141,9 @@ SmartImpulsator<impulsator_static_esr<pin1, pin2>>& make_smart_impulsator_static
 	return smart_impulsator;
 }
 
-SmartImpulsator<impulsator_dynamic>& make_smart_impulsator_dynamic(int pin1, int pin2, uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
+SmartImpulsator<impulsator_dynamic> make_smart_impulsator_dynamic(int pin1, int pin2, uint16_t max_value, uint8_t step_count, int pin_guzik=-1, bool guzik_analog_pin=false)
  {
-	static SmartImpulsator<impulsator_dynamic> smart_impulsator = SmartImpulsator<impulsator_dynamic>(impulsator_dynamic(pin1, pin2), 
+	SmartImpulsator<impulsator_dynamic> smart_impulsator = SmartImpulsator<impulsator_dynamic>(impulsator_dynamic(pin1, pin2), 
 			max_value, step_count, pin_guzik, guzik_analog_pin);
 	return smart_impulsator;
 }

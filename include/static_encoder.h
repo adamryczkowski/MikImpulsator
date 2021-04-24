@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <timer.h>
 #include "function_objects.h"
+#ifdef debug
 #include <Streaming.h>
+#endif
 //Library that handles the encoder through the hardware interrupts for the best possible quality. 
 //On Arduino Uno the encoder must be connected to pins 2 and 3, 
 //On Arduino Due the encoder can be connected to more pins, e.g. 3 and 10. More choices can be found on https://www.arduino.cc/en/Hacking/PinMappingSAM3X ).
